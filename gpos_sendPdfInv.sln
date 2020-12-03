@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30503.244
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gpos_sendPdfInv", "gpos_sendPdfInv\gpos_sendPdfInv.csproj", "{4E5B629F-CC4B-438F-93F7-7C53C7BB0D8D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4E5B629F-CC4B-438F-93F7-7C53C7BB0D8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E5B629F-CC4B-438F-93F7-7C53C7BB0D8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E5B629F-CC4B-438F-93F7-7C53C7BB0D8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E5B629F-CC4B-438F-93F7-7C53C7BB0D8D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {87AF2B90-5723-4646-9E80-23D697645D59}
+	EndGlobalSection
+EndGlobal
