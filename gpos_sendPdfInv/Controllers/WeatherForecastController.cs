@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace gpos_sendPdfInv.Controllers
 {
+	[Authorize]
 	[ApiController]
 	[Route("[controller]")]
 	public class WeatherForecastController : ControllerBase
@@ -22,7 +24,7 @@ namespace gpos_sendPdfInv.Controllers
 		{
 			_logger = logger;
 		}
-
+		[AllowAnonymous]
 		[HttpGet]
 		public IEnumerable<WeatherForecast> Get()
 		{
