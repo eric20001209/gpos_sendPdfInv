@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using eCommerce_API.Dto;
 using gpos_sendPdfInv.Entities;
 
-namespace gpos_sendPdfInv.Services
+namespace gpos_sendPdfInv.Services.Repositories
 {
 	public interface ISetting
 	{

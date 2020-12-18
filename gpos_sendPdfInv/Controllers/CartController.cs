@@ -48,7 +48,7 @@ namespace gpos_sendPdfInv.Controllers
             List<CartItemDto> myShoppingCart =
                 (from c in _context.Carts.Where(c => userId != null ? c.CardId == userId : true && c.Code != null)
                  .Select(c => new { c.Id, c.CardId, c.Code, c.Name, c.Quantity, c.SalesPrice, c.SupplierPrice, c.SupplierCode, c.Barcode, c.Points, c.Note })
-                     //               join cr in _context.CodeRelations.Where(cr => cr.IsWebsiteItem == true) on c.Code equals cr.Code.ToString()
+                     join cr in _context.CodeRelations.Where(cr => cr.IsWebsiteItem == true) on c.Code equals cr.Code.ToString()
                  select new CartItemDto
                  {
                      id = c.Id,
@@ -62,8 +62,8 @@ namespace gpos_sendPdfInv.Controllers
                      //                  moq = (cr.Moq == null || cr.Moq == 0) ? 1 : cr.Moq ?? 1,
                      //                    inner_pack = cr.InnerPack == 0 ? 1 : cr.InnerPack,
                      //                    outer_pack = (cr.outer_pack == null || cr.outer_pack == 0) ? 1 : cr.outer_pack ?? 1,
-                     free_delevery = _item.freeDelevery(int.Parse(c.Code)),
-                     weight = _item.getWeight(int.Parse(c.Code)),
+                      free_delevery = cr.FreeDelivery,
+                      weight = cr.Weight,
                      points = c.Points,
                      note = c.Note,
                      total = Math.Round(Convert.ToDouble(c.SalesPrice) * Convert.ToDouble(String.IsNullOrEmpty(c.Quantity) ? "0" : c.Quantity), 2),

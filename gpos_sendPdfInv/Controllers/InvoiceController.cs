@@ -13,9 +13,12 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Net.Http;
 using System.Net.Mail;
+using Microsoft.AspNetCore.Authorization;
 
 namespace gpos_sendPdfInv.Controllers
 {
+    [Authorize]
+    [AllowAnonymous]
 	[Route("api/invoice")]
 	[ApiController]
 	public class InvoiceController : ControllerBase

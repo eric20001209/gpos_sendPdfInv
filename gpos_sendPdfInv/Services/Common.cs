@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,6 +18,12 @@ namespace gpos_sendPdfInv.Services
 			}
 
 			return hex.ToString();
+		}
+
+		public byte[] HashHMAC(byte[] key, byte[] message)
+		{
+			var hash = new HMACSHA256(key);
+			return hash.ComputeHash(message);
 		}
 	}
 	public static class Constants

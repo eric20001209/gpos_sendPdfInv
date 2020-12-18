@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using gpos_sendPdfInv.Entities;
 using Microsoft.EntityFrameworkCore;
 using gpos_sendPdfInv.Services;
+using gpos_sendPdfInv.Services.Repositories;
 using System.IO;
 using DinkToPdf.Contracts;
 using DinkToPdf;
@@ -57,7 +58,12 @@ namespace gpos_sendPdfInv
 			services.AddScoped<admingposContext>();
 			/** register services **/
 			services.AddScoped<IInvoice,gpos_sendPdfInv.Services.Utility>();
+			services.AddScoped<ISetting,SettingRepository>();
+			services.AddScoped<IItem,ItemRepository>();
 			services.AddTransient<iMailService, MailService>();
+			//register migration
+			services.AddScoped<Migration>();
+
 			/**	register dll for DinkToPdf	**/
 			Path.Combine(Directory.GetCurrentDirectory(), "libwkhtmltox.dll");
 			services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));   //DinkToPdf DI
@@ -135,7 +141,7 @@ namespace gpos_sendPdfInv
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env , Migration migration)
 		{
 			if (env.IsDevelopment())
 			{
@@ -150,11 +156,10 @@ namespace gpos_sendPdfInv
 			app.UseCors();
 			app.UseRouting();
 
+			migration.migration().Wait();
+
 			app.UseAuthentication();
 			app.UseAuthorization();
-
-
-
 
 			app.UseEndpoints(endpoints =>
 			{

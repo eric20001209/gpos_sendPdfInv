@@ -29,6 +29,7 @@ namespace gpos_sendPdfInv.Entities
         public virtual DbSet<Invoice> Invoices { get; set; }
         public virtual DbSet<InvoiceFreight> InvoiceFreights { get; set; }
         public virtual DbSet<InvoiceNote> InvoiceNotes { get; set; }
+        public virtual DbSet<MessageBoard> MessageBoards { get; set; }
         public virtual DbSet<OrderItem> OrderItem { get; set; }
         public virtual DbSet<Orders> Orders { get; set; }
         public virtual DbSet<ProductDetails> ProductDetails { get; set; }
@@ -1455,7 +1456,6 @@ namespace gpos_sendPdfInv.Entities
                 entity.Property(e => e.FreightRangeEnd2).HasColumnName("freight_range_end2").HasColumnType("money").HasDefaultValueSql("(0)");
                 entity.Property(e => e.FreightRangeEnd3).HasColumnName("freight_range_end3").HasColumnType("money").HasDefaultValueSql("(0)");
             });
-
             modelBuilder.Entity<Invoice>(entity =>
             {
                 entity.ToTable("invoice");
@@ -1633,7 +1633,6 @@ namespace gpos_sendPdfInv.Entities
                     .HasColumnName("type")
                     .HasDefaultValueSql("(3)");
             });
-
             modelBuilder.Entity<InvoiceFreight>(entity =>
             {
                 entity.ToTable("invoice_freight");
@@ -1670,7 +1669,6 @@ namespace gpos_sendPdfInv.Entities
                     .IsUnicode(false)
                     .HasColumnName("ticket");
             });
-
             modelBuilder.Entity<InvoiceNote>(entity =>
             {
                 entity.ToTable("invoice_note");
@@ -1692,6 +1690,15 @@ namespace gpos_sendPdfInv.Entities
                     .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.StaffId).HasColumnName("staff_id");
+            });
+            modelBuilder.Entity<MessageBoard>(entity => {
+                entity.ToTable("message_board");
+                entity.HasKey(entity => entity.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Name).HasColumnName("name").IsUnicode(true);
+                entity.Property(e => e.Subject).HasColumnName("subjuect").IsUnicode(true);
+                entity.Property(e => e.Content).HasColumnName("content").IsUnicode(true);
+                entity.Property(e => e.Email).HasColumnName("email").IsUnicode(true);
             });
             modelBuilder.Entity<OrderItem>(entity =>
             {
@@ -1818,7 +1825,6 @@ namespace gpos_sendPdfInv.Entities
                     .HasColumnName("tax_rate")
                     .HasDefaultValueSql("((0))");
             });
-
             modelBuilder.Entity<Orders>(entity =>
             {
                 entity.ToTable("orders");

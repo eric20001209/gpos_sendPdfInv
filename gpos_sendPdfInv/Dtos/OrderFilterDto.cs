@@ -7,7 +7,7 @@ namespace eCommerce_API.Dto
 {
     public class OrderFilterDto
     {
-        public int id { get; set; } //user id
+        public int userId { get; set; } //user id
         public bool? inoviced { get; set; }
         public bool? paid { get; set; }
         public int? status { get; set; }
