@@ -35,9 +35,11 @@ namespace gpos_sendPdfInv.Services
 
 		//policies
 		public const string CURRENT_USER = "Current User";
+		public const string ORDER_BELONG_TO_USER= "Order Belong To User";
 
 		//Common
 		public const string USER_ID = "User Id";
+		public const string ORDER_ID = "Order Id";
 		public const string TENANT_ID = "Tenant Id";
 		public const string TENANTS = "Tenants";
 		public const string TRUE = "True";

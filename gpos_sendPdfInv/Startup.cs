@@ -56,10 +56,12 @@ namespace gpos_sendPdfInv
 			services.AddDbContext<admingposContext>(options =>
 				options.UseSqlServer(Configuration.GetConnectionString("appContext")));
 			services.AddScoped<admingposContext>();
+			services.AddTransient<admingposContext>();
 			/** register services **/
 			services.AddScoped<IInvoice,gpos_sendPdfInv.Services.Utility>();
 			services.AddScoped<ISetting,SettingRepository>();
 			services.AddScoped<IItem,ItemRepository>();
+			services.AddScoped<IOrder, OrderRepository>();
 			services.AddTransient<iMailService, MailService>();
 			//register migration
 			services.AddScoped<Migration>();
@@ -74,11 +76,12 @@ namespace gpos_sendPdfInv
 
 			/*add handlers to DI*/
 			services.AddSingleton<IAuthorizationHandler, CurrentUserRequirementHandler>();
-
+			services.AddScoped<IAuthorizationHandler, OrderBelongToUserRequirementHandler>();
 			/*	add authorizations */
 			services.AddAuthorization(options =>
 			{
 				options.AddPolicy(Constants.CURRENT_USER, policy => policy.Requirements.Add(new CurrentUserRequirement()));
+				options.AddPolicy(Constants.ORDER_BELONG_TO_USER, policy => policy.Requirements.Add(new OrderBelongToUserRequirement()));
 			});
 			//Cors
 			services.AddCors(options =>
