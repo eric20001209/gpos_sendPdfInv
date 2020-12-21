@@ -25,6 +25,9 @@ namespace gpos_sendPdfInv.Entities
         public virtual DbSet<CodeRelations> CodeRelations { get; set; }
         public virtual DbSet<DpsOutput> DpsOutput { get; set; }
         public virtual DbSet<Enum> Enums { get; set; }
+        public virtual DbSet<EcomBanner> EcomBanner { get; set; }
+        public virtual DbSet<EcomSetting> EcomSetting { get; set; }
+        public virtual DbSet<EcomTopMenu> EcomTopMenu { get; set; }
         public virtual DbSet<FreightSettings> FreightSettings { get; set; }
         public virtual DbSet<Invoice> Invoices { get; set; }
         public virtual DbSet<InvoiceFreight> InvoiceFreights { get; set; }
@@ -606,6 +609,10 @@ namespace gpos_sendPdfInv.Entities
                 entity.Property(e => e.WorkingOn)
                     .HasColumnName("working_on")
                     .HasDefaultValueSql("((1))");
+
+                entity.Property(e => e.Zip)
+                    .HasColumnName("zip");
+
             });
             modelBuilder.Entity<CardAddress>(entity =>
             {
@@ -1440,6 +1447,7 @@ namespace gpos_sendPdfInv.Entities
                     .IsUnicode(false)
                     .HasColumnName("name");
             });
+
             modelBuilder.Entity<FreightSettings>(entity =>
             {
                 entity.HasKey(e => new { e.Id });
@@ -2353,6 +2361,34 @@ namespace gpos_sendPdfInv.Entities
                 entity.Property(e => e.TransBankId).HasColumnName("trans_bank_id");
 
                 entity.Property(e => e.TransDate).HasColumnName("trans_date");
+            });
+            modelBuilder.Entity<EcomBanner>(entity =>
+            {
+                entity.ToTable("ecom_banner");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Name).HasColumnName("name");
+                entity.Property(e => e.PicUrl).HasColumnName("pic_url");
+                entity.Property(e => e.HrefUrl).HasColumnName("href_url");
+                entity.Property(e => e.Seq).HasColumnName("seq");
+            });
+
+            modelBuilder.Entity<EcomSetting>(entity =>
+            {
+                entity.ToTable("ecom_setting");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Name).HasColumnName("name");
+                entity.Property(e => e.Value).HasColumnName("value");
+                entity.Property(e => e.Active).HasColumnName("active").HasDefaultValueSql("(1)");
+            });
+
+            modelBuilder.Entity<EcomTopMenu>(entity =>
+            {
+                entity.ToTable("ecom_top_menu");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Description).HasColumnName("description");
+                entity.Property(e => e.Url).HasColumnName("url");
+                entity.Property(e => e.Seq).HasColumnName("seq");
+                entity.Property(e => e.Active).HasColumnName("active").HasDefaultValueSql("(1)");
             });
 
             modelBuilder.Entity<TranDetail>(entity =>

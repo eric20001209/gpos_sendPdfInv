@@ -7,10 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace gpos_sendPdfInv.Services
 {
-	public class Migration
+	public class Seed
 	{
 		private readonly admingposContext _context;
-		public Migration(admingposContext context)
+		public Seed(admingposContext context)
 		{
 			_context = context;
 		}

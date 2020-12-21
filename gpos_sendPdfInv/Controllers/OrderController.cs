@@ -433,5 +433,26 @@ namespace gpos_sendPdfInv.Controllers
                 return BadRequest(ex.ToString());
             }
         }
+
+        [HttpGet("SendOrderToSupplier/{orderId}")]
+        [HttpDelete("del/{orderId}")]
+        public async Task<IActionResult> deleteOrder(int? orderId)
+        {
+            if (orderId == null)
+                return NotFound();
+            var orderToDel = _context.Orders.Where(o => o.Id == orderId).FirstOrDefault();
+            orderToDel.OrderDeleted = 1;
+            orderToDel.WebOrderStatus = 2;
+            _context.Update(orderToDel);
+            //var orderItemToDel = _context.OrderItem.Where(oi => oi.Id == id).ToList();
+            //var invoiceToDel = _context.Invoice.Where(i => i.InvoiceNumber == orderToDel.InvoiceNumber).FirstOrDefault();
+            //var salesTodel = _context.Sales.Where(s => s.InvoiceNumber == orderToDel.InvoiceNumber).ToList();
+            //_context.Orders.Remove(orderToDel);
+            //_context.OrderItem.RemoveRange(orderItemToDel);
+            //_context.Invoice.Remove(invoiceToDel);
+            //_context.Sales.RemoveRange(salesTodel);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
     }
 }

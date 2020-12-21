@@ -127,5 +127,6 @@ namespace gpos_sendPdfInv.Entities
         public double? TargetRental { get; set; }
         public double? TargetSales { get; set; }
         public double? TargetPoint { get; set; }
+        public string Zip { get; set; }
     }
 }

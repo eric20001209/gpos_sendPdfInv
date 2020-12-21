@@ -64,7 +64,7 @@ namespace gpos_sendPdfInv
 			services.AddScoped<IOrder, OrderRepository>();
 			services.AddTransient<iMailService, MailService>();
 			//register migration
-			services.AddScoped<Migration>();
+			services.AddScoped<Seed>();
 
 			/**	register dll for DinkToPdf	**/
 			Path.Combine(Directory.GetCurrentDirectory(), "libwkhtmltox.dll");
@@ -140,11 +140,28 @@ namespace gpos_sendPdfInv
 				options.ClientId = Configuration["Providers:Microsoft:ClientId"];// "1158ee1a-c458-447c-a938-04e6189b9425";
 				options.ClientSecret = Configuration["Providers:Microsoft:ClientSecret"];// "sDY~4-n9.zD9.qyKJHN-D4iN669~7vMux6";
 			});
+
+			services.AddSwaggerGen(options =>
+			{
+				options.SwaggerDoc("v1",
+				new Microsoft.OpenApi.Models.OpenApiInfo
+				{
+					Title = "eCom API GPOS",
+					Description = " eCom API Swagger",
+					Version = "v1"
+				});
+			});
+			//services.AddSwaggerGen(c =>
+			//{
+			//	c.SwaggerDoc("v1", new Info { Title = "API WSVAP (WebSmartView)", Version = "v1" });
+			//	c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First()); //This line
+			//});
+
 			services.AddControllers().AddNewtonsoftJson(action =>action.SerializerSettings.ContractResolver = new DefaultContractResolver());
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env , Migration migration)
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env , Seed migration)
 		{
 			if (env.IsDevelopment())
 			{
@@ -155,11 +172,17 @@ namespace gpos_sendPdfInv
 			app.UseStatusCodePages();
 			app.UseDefaultFiles();
 			app.UseHttpsRedirection();
+			app.UseDeveloperExceptionPage();
 
 			app.UseCors();
 			app.UseRouting();
 
 			migration.migration().Wait();
+
+			app.UseSwagger();
+			app.UseSwaggerUI(options => {
+				options.SwaggerEndpoint("/swagger/v1/swagger.json", "gposEcom");
+			});
 
 			app.UseAuthentication();
 			app.UseAuthorization();
@@ -168,6 +191,8 @@ namespace gpos_sendPdfInv
 			{
 				endpoints.MapControllers();
 			});
+
+
 		}
 	}
 }

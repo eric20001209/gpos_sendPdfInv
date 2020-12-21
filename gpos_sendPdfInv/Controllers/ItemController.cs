@@ -177,6 +177,7 @@ namespace gpos_sendPdfInv.Controllers
             //         var result = list; // Mapper.Map<IEnumerable<ItemDto>>(myItemList).OrderBy(c => c.Code).ToList() ;
             return final;
         }
+
         [HttpGet("{code}")]
         public IActionResult item(int code)
         {
@@ -298,7 +299,7 @@ namespace gpos_sendPdfInv.Controllers
             return Ok(finalList);
         }
 
-        public SpecialItemListDto specialList([FromBody] itemFilterDto filter, [FromQuery] Pagination paging)
+        private SpecialItemListDto specialList([FromBody] itemFilterDto filter, [FromQuery] Pagination paging)
         {
             _context.ChangeTracker.QueryTrackingBehavior = Microsoft.EntityFrameworkCore.QueryTrackingBehavior.NoTracking;
 
