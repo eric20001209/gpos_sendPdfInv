@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.JsonPatch;
 using System.Net.Http;
+using NLog.Web;
 
 namespace gpos_sendPdfInv.Controllers
 {
@@ -434,7 +435,261 @@ namespace gpos_sendPdfInv.Controllers
 			}
 		}
 
-		
+		[Authorize(Policy = Constants.CURRENT_USER)]
+		[HttpPost("create/{userId}")]
+		public async Task<IActionResult> createOrder([FromBody] CartDto cart)
+		{
+			if (!ModelState.IsValid)
+				return BadRequest();
+			//check if record in shopping cart match records in cart table
+			var itemsInCartTable = _context.Carts.Where(c => c.CardId == cart.card_id).ToList();  //items in cart table
+			var itemsInCartDto = cart.cartItems;
+			var itemsInCartTableToObj = itemsInCartTable.ConvertAll(x => new
+			{
+				id = x.Id,
+				card_id = x.CardId,
+				code = x.Code,
+				quantity = x.Quantity
+			});
+
+			var itemsInCartDtoToObj = itemsInCartDto.ConvertAll(x => new
+			{
+				id = x.id,
+				card_id = x.card_id,
+				code = x.code,
+				quantity = x.quantity
+			});
+
+			if (itemsInCartTable.Count() == itemsInCartDto.Count() && itemsInCartTableToObj.All(itemsInCartDtoToObj.Contains))
+			{
+
+			}
+			else
+			{
+				return BadRequest("Items pass to request do not match items in Cart table!");
+			}
+
+			var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+
+			if (cart == null || cart.cartItems == null) //if no item in cart, return not found; 
+			{
+				logger.Debug("shopping cart is empty");
+				return NotFound();
+			}
+			//bool hasCardid = await _context.Card.AnyAsync(c => c.Id == cart.card_id);
+
+			if (!await _context.Cards.AnyAsync(c => c.Id == cart.card_id))
+			{
+				logger.Debug("This user doesn't exists, id : " + cart.card_id + "");
+				return NotFound("This account does not exist, card_id :" + cart.card_id + " !");
+			}
+
+			//foreach (var item in cart.cartItems)
+			//{
+
+			//    if (!await _context.CodeRelations.AnyAsync(c => c.Code == Convert.ToInt32(item.code)))
+			//    {
+			//        logger.Debug("This item doesn't sell any longer, item code : "+item.code+"");
+			//        return NotFound("This item does not sell any longer, item code :" + item.code + " !");
+			//    }
+			//}
+			var inoviceInfo = new object();
+			var branch_id = 1;
+
+			//         if (await _context.Branch.AnyAsync(b => b.Name.Trim() == "Online Shop"))
+			{
+				branch_id = _isettings.getOnlineShopId();  //_context.Branch.Where(b => b.Name.Trim() == "Online Shop").FirstOrDefault().Id;
+				logger.Debug("Get online shop id: " + branch_id + "");
+			}
+			var customerGst = cart.customer_gst;
+			var newOrder = new Orders();
+			newOrder.CardId = cart.card_id;
+			newOrder.PoNumber = cart.po_num;
+			newOrder.Branch = branch_id;
+			newOrder.Freight = Math.Round((decimal)(cart.freight / (1 + (decimal?)customerGst)), 4);
+			newOrder.OrderTotal = (decimal)cart.sub_total;
+			newOrder.ShippingMethod = (byte)cart.shipping_method;
+			newOrder.CustomerGst = cart.customer_gst;
+			newOrder.IsWebOrder = true;
+			newOrder.WebOrderStatus = 1;
+			newOrder.Status = 1;
+
+			using (var dbContextTransaction = _context.Database.BeginTransaction())
+			{
+				try
+				{
+					await _context.Orders.AddAsync(newOrder);
+					await _context.SaveChangesAsync();
+					var newOrderId = newOrder.Id;
+					//                  var customerGst = newOrder.CustomerGst;
+					var totalGstInc = Math.Round((decimal)cart.sub_total * (1 + (decimal)customerGst), 2);
+					await inputOrderItem(cart.cartItems, newOrderId, customerGst);
+					inoviceInfo = await CreateInvoiceAsync(cart, newOrderId);
+					await ClearShoppingCart(cart.card_id);
+					await inputShippingInfo(cart.shippingInfo, newOrderId);
+
+					await _context.SaveChangesAsync();
+					dbContextTransaction.Commit();
+					return Ok(inoviceInfo);
+				}
+				catch (Exception ex)
+				{
+					dbContextTransaction.Rollback();
+					logger.Error(ex.ToString());
+					return BadRequest(ex.ToString());
+				}
+				finally
+				{
+					NLog.LogManager.Shutdown();
+				}
+
+			}
+
+		}
+		private async Task<IActionResult> CreateInvoiceAsync([FromBody] CartDto cart, int orderid)
+		{
+			if (cart == null || cart.cartItems == null) //if no item in cart, return not found; 
+			{
+				return NotFound();
+			}
+
+			if (!_context.Cards.Any(c => c.Id == cart.card_id))
+			{
+				return NotFound("This account does not exist, card_id :" + cart.card_id + " !");
+			}
+
+			if (!_context.Orders.Any(o => o.Id == orderid))
+			{
+				return NotFound("This order does not exist, card_id :" + cart.card_id + " !");
+			}
+
+			var customerGst = cart.customer_gst;
+			var currentOrder = _context.Orders.Where(o => o.Id == orderid).FirstOrDefault();
+			var branch = _context.Orders.Where(o => o.Id == orderid).FirstOrDefault().Branch;
+			var shippingMethod = _context.Orders.Where(o => o.Id == orderid).FirstOrDefault().ShippingMethod;
+			var freightTax = cart.freight - Math.Round((decimal)(cart.freight / (1 + (decimal?)customerGst)), 4);
+
+			var newInvoice = new Invoice();
+			newInvoice.Branch = branch;
+			newInvoice.CardId = cart.card_id;
+			newInvoice.Price = (decimal?)cart.sub_total;
+			newInvoice.ShippingMethod = shippingMethod;
+			newInvoice.Tax = (decimal?)cart.tax + freightTax;
+			newInvoice.Freight = Math.Round((decimal)(cart.freight / (1 + (decimal?)customerGst)), 4);
+			newInvoice.Total = (decimal?)(cart.total);// + cart.freight);
+			newInvoice.CommitDate = DateTime.Now;
+			newInvoice.ShippingMethod = (byte)cart.shipping_method;
+			_context.Add(newInvoice);
+			_context.SaveChanges();
+
+			var invoiceNumber = newInvoice.Id;
+
+			currentOrder.InvoiceNumber = invoiceNumber;
+			newInvoice.InvoiceNumber = invoiceNumber;
+			_context.SaveChanges();
+
+			IActionResult a = await inputSalesItem(cart.cartItems, invoiceNumber, customerGst);
+
+			return Ok(new { orderid, invoiceNumber, newInvoice.Total });
+		}
+		private async Task<IActionResult> inputOrderItem(List<CartItemDto> itemsInCart, int? orderId, double? customerGst)
+		{
+
+			if (itemsInCart == null || orderId == null)
+			{
+				return NotFound("Nothing in shopping cart!");
+			}
+			foreach (var item in itemsInCart)
+			{
+				var newOrderItem = new OrderItem();
+				newOrderItem.Id = orderId.GetValueOrDefault();
+				newOrderItem.Code = Convert.ToInt32(item.code);
+				newOrderItem.ItemName = item.name;
+				newOrderItem.Note = item.note;
+				newOrderItem.Quantity = Convert.ToDouble(item.quantity);
+				newOrderItem.SupplierCode = item.supplier_code ?? "";
+				newOrderItem.Supplier = "";
+				newOrderItem.CommitPrice = Convert.ToDecimal(item.sales_price) / Convert.ToDecimal(1 + customerGst ?? 0.15);
+
+				newOrderItem.Cat = _iitem.getCat("cat", newOrderItem.Code); // _context.CodeRelations.Where(c => c.Code == Convert.ToInt32(item.code)).FirstOrDefault().Cat;
+				newOrderItem.SCat = _iitem.getCat("scat", newOrderItem.Code);  //_context.CodeRelations.Where(c => c.Code == Convert.ToInt32(item.code)).FirstOrDefault().SCat;
+				newOrderItem.SsCat = _iitem.getCat("sscat", newOrderItem.Code);  //_context.CodeRelations.Where(c => c.Code == Convert.ToInt32(item.code)).FirstOrDefault().SsCat;
+				await _context.AddAsync(newOrderItem);
+			}
+			//         await _context.SaveChangesAsync();
+			return Ok();
+		}
+		private async Task<IActionResult> inputSalesItem(List<CartItemDto> itemsInCart, int? inoviceNumber, double? customerGst)
+		{
+
+			if (itemsInCart == null || inoviceNumber == null)
+			{
+				return NotFound("Cannot find inoivce!");
+			}
+			foreach (var item in itemsInCart)
+			{
+				var newSales = new Sale();
+				newSales.InvoiceNumber = inoviceNumber.GetValueOrDefault();
+				newSales.Code = Convert.ToInt32(item.code);
+				newSales.Name = item.name;
+				newSales.Note = item.note;
+				newSales.Quantity = Convert.ToDouble(item.quantity);
+				newSales.SupplierCode = item.supplier_code ?? "";
+				newSales.Supplier = "";
+				newSales.CommitPrice = Convert.ToDecimal(item.sales_price) / Convert.ToDecimal(1 + customerGst ?? 0.15);
+
+				newSales.Cat = _iitem.getCat("cat", newSales.Code); //_context.CodeRelations.Where(c => c.Code == Convert.ToInt32(item.code)).FirstOrDefault().Cat;
+				newSales.SCat = _iitem.getCat("scat", newSales.Code); //_context.CodeRelations.Where(c => c.Code == Convert.ToInt32(item.code)).FirstOrDefault().SCat;
+				newSales.SsCat = _iitem.getCat("sscat", newSales.Code); //_context.CodeRelations.Where(c => c.Code == Convert.ToInt32(item.code)).FirstOrDefault().SsCat;
+				await _context.AddAsync(newSales);
+			}
+			//          await _context.SaveChangesAsync();
+			return Ok();
+		}
+
+		private async Task<IActionResult> ClearShoppingCart(int card_id)
+		{
+			var recordAffected = _context.Carts.Where(c => c.CardId == card_id).ToList();
+			if (recordAffected.Count == 0)
+				return NotFound();
+			if (recordAffected.Count > 0)
+			{
+				_context.RemoveRange(recordAffected);
+				await _context.SaveChangesAsync();
+			}
+			return Ok();
+		}
+		private async Task<IActionResult> inputShippingInfo(ShippingInfoDto shippingInfo, int? orderId)
+		{
+			if (shippingInfo == null || orderId == null)
+			{
+				return NotFound("No shipping address or order_id!");
+			}
+			shippingInfo.orderId = orderId.GetValueOrDefault();
+			var newShipping = new ShippingInfo();
+			newShipping.orderId = shippingInfo.orderId;
+			newShipping.sender = shippingInfo.sender;
+			newShipping.sender_phone = shippingInfo.sender_phone;
+			newShipping.sender_address = shippingInfo.sender_address;
+			newShipping.sender_city = shippingInfo.sender_city;
+			newShipping.sender_country = shippingInfo.sender_country;
+
+			newShipping.receiver = shippingInfo.receiver;
+			newShipping.receiver_phone = shippingInfo.receiver_phone;
+			newShipping.receiver_address1 = shippingInfo.receiver_address1;
+			newShipping.receiver_address2 = shippingInfo.receiver_address2;
+			newShipping.receiver_address3 = shippingInfo.receiver_address3;
+			newShipping.receiver_city = shippingInfo.receiver_city;
+			newShipping.receiver_country = shippingInfo.receiver_country;
+			newShipping.receiver_company = shippingInfo.receiver_company;
+			newShipping.receiver_contact = shippingInfo.receiver_contact;
+			newShipping.note = shippingInfo.note;
+
+			await _context.ShippingInfo.AddAsync(newShipping);
+			await _context.SaveChangesAsync();
+			return Ok();
+		}
+
 		[HttpDelete("del/{orderId}")]
 		public async Task<IActionResult> deleteOrder(int? orderId)
 		{

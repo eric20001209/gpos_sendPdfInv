@@ -12,6 +12,9 @@ namespace gpos_sendPdfInv.Entities
         public int Code { get; set; }
         public double Quantity { get; set; }
         public string Name { get; set; }
+        public string Cat { get; set; }
+        public string SCat { get; set; }
+        public string SsCat { get; set; }
         public string Supplier { get; set; }
         public string SupplierCode { get; set; }
         public string SerialNumber { get; set; }
