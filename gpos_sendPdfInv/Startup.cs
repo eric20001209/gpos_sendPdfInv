@@ -55,6 +55,7 @@ namespace gpos_sendPdfInv
 			//register DbContext
 			services.AddDbContext<admingposContext>(options =>
 				options.UseSqlServer(Configuration.GetConnectionString("appContext")));
+
 			services.AddScoped<admingposContext>();
 			services.AddTransient<admingposContext>();
 			/** register services **/

@@ -46,8 +46,12 @@ namespace gpos_sendPdfInv.Controllers
 		[HttpGet("settings")]
 		public IActionResult getFreightSettings()
 		{
+			string freight = "5";
 			/********   Default Oversea Freight   ****************/
-			var freight = _context.Settings.Where(s => s.Name == "freight_unit_price").FirstOrDefault().Value;
+			var freightSetting = _context.Settings.Where(s => s.Name == "freight_unit_price").FirstOrDefault();
+			if (freightSetting != null)
+				freight = freightSetting.Value;
+				
 			var freightUnitPrice = decimal.Parse(freight ?? "5");
 			//if (freight == null || freight == "")
 			//	freightUnitPrice = 5;
@@ -92,8 +96,8 @@ namespace gpos_sendPdfInv.Controllers
 			{
 				OverseaFreight = freightUnitPrice,
 				DomesticFreight = domesticFrieghtList,
-				Freeshipping = freeshippingEnabled.Value,
-				FreeshppingActiveAmount = freeShippingActiveAmount.Value
+				Freeshipping = sfreeshippingEnabled,
+				FreeshppingActiveAmount = sfreeShippingActiveAmount
 			});
 		}
 

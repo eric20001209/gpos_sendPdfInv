@@ -132,9 +132,9 @@ namespace gpos_sendPdfInv.Entities
         public bool PickDate { get; set; }
         public bool AvoidPoint { get; set; }
         public int RedeemPoint { get; set; }
-        public int? Moq { get; set; }
+        public double? Moq { get; set; }
         public string BoxedQty { get; set; }
-        public int InnerPack { get; set; }
+        public double? InnerPack { get; set; }
         public bool Hidden { get; set; }
         public double CommissionRate { get; set; }
         public bool IsVoidDiscount { get; set; }
