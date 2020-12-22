@@ -154,8 +154,7 @@ namespace gpos_sendPdfInv.Controllers
 							Price1 = c.Price1,
 							Barcodes = _iitem.getBarcodes(c.Code),
 							StoreSpecial = _iitem.SpecialSetting(c.Code, _isettings.getOnlineShopId())
-						}
-                          );
+						});
 
             var itemCount = count;
             var pageCount = (int)Math.Ceiling(itemCount / (double)pagination.PageSize);
