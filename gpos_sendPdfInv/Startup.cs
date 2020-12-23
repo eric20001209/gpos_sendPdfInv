@@ -29,6 +29,8 @@ using Newtonsoft.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using gpos_sendPdfInv.Security.Handlers;
 using gpos_sendPdfInv.Security.Requirements;
+using Swashbuckle.AspNetCore.Filters;
+using Microsoft.OpenApi.Models;
 
 namespace gpos_sendPdfInv
 {
@@ -144,13 +146,42 @@ namespace gpos_sendPdfInv
 
 			services.AddSwaggerGen(options =>
 			{
-				options.SwaggerDoc("v1",
-				new Microsoft.OpenApi.Models.OpenApiInfo
+				//options.SwaggerDoc("v1",
+				//new Microsoft.OpenApi.Models.OpenApiInfo
+				//{
+				//	Title = "eCom API GPOS",
+				//	Description = " eCom API Swagger",
+				//	Version = "v1"
+				//});
+				options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
 				{
-					Title = "eCom API GPOS",
-					Description = " eCom API Swagger",
-					Version = "v1"
+					Description =
+						"JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+					Name = "Authorization",
+					In = ParameterLocation.Header,
+					Type = SecuritySchemeType.ApiKey,
+					Scheme = "Bearer"
 				});
+
+				options.AddSecurityRequirement(new OpenApiSecurityRequirement()
+				{
+					{
+						new OpenApiSecurityScheme
+						{
+							Reference = new OpenApiReference
+							{
+								Type = ReferenceType.SecurityScheme,
+								Id = "Bearer"
+							},
+							Scheme = "oauth2",
+							Name = "Bearer",
+							In = ParameterLocation.Header,
+
+						},
+						new List<string>()
+					}
+				});
+
 			});
 			//services.AddSwaggerGen(c =>
 			//{
