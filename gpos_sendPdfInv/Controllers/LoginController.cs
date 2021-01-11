@@ -31,7 +31,7 @@ namespace gpos_sendPdfInv.Controllers
 		}
 
         [AllowAnonymous]
-        [HttpPost("userLogin")]
+        [HttpPost("Login")]
         public IActionResult login([FromBody] LoginDto mylogin)
         {
             if (!ModelState.IsValid)
