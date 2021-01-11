@@ -189,7 +189,7 @@ namespace gpos_sendPdfInv
 			//	c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First()); //This line
 			//});
 
-			services.AddControllers().AddNewtonsoftJson(action =>action.SerializerSettings.ContractResolver = new DefaultContractResolver());
+			services.AddControllers().AddNewtonsoftJson(action =>action.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver());
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
