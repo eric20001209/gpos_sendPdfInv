@@ -88,16 +88,19 @@ namespace gpos_sendPdfInv.Controllers
         {
 			try
 			{
-                string host = "https://" + HttpContext.Request.Host;// _config["ApiUrl"];
+                string host =  // "https://" + HttpContext.Request.Host;
+                                 _config["ApiUrl"];
                 var currentSite = _config["CurrentSite"];
-				try
+               
+
+                try
 				{
                     using (var client = new HttpClient())
                     {
                         client.BaseAddress = new Uri(host);
 
                         //var responseTask = client.GetAsync(currentSite + "/api/invoice/pdf/" + invoice_number);
-                        var responseTask = client.GetAsync( "/api/invoice/pdf/" + invoice_number);
+                        var responseTask = client.GetAsync( "/gposInv/api/invoice/pdf/" + invoice_number);
                         responseTask.Wait();
                         var getResult = responseTask.Result;
                         if (getResult.IsSuccessStatusCode)
