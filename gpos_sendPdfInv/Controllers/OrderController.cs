@@ -471,18 +471,18 @@ namespace gpos_sendPdfInv.Controllers
 				return BadRequest("Items pass to request do not match items in Cart table!");
 			}
 
-			var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+//			var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
 
 			if (cart == null || cart.cartItems == null) //if no item in cart, return not found; 
 			{
-				logger.Debug("shopping cart is empty");
+//				logger.Debug("shopping cart is empty");
 				return NotFound();
 			}
 			//bool hasCardid = await _context.Card.AnyAsync(c => c.Id == cart.card_id);
 
 			if (!await _context.Cards.AnyAsync(c => c.Id == cart.card_id))
 			{
-				logger.Debug("This user doesn't exists, id : " + cart.card_id + "");
+//				logger.Debug("This user doesn't exists, id : " + cart.card_id + "");
 				return NotFound("This account does not exist, card_id :" + cart.card_id + " !");
 			}
 
@@ -501,7 +501,7 @@ namespace gpos_sendPdfInv.Controllers
 			//         if (await _context.Branch.AnyAsync(b => b.Name.Trim() == "Online Shop"))
 			{
 				branch_id = _isettings.getOnlineShopId();  //_context.Branch.Where(b => b.Name.Trim() == "Online Shop").FirstOrDefault().Id;
-				logger.Debug("Get online shop id: " + branch_id + "");
+//				logger.Debug("Get online shop id: " + branch_id + "");
 			}
 			var customerGst = cart.customer_gst;
 			var newOrder = new Orders();
@@ -537,7 +537,7 @@ namespace gpos_sendPdfInv.Controllers
 				catch (Exception ex)
 				{
 					dbContextTransaction.Rollback();
-					logger.Error(ex.ToString());
+//					logger.Error(ex.ToString());
 					return BadRequest(ex.ToString());
 				}
 				finally
