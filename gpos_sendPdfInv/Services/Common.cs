@@ -44,5 +44,12 @@ namespace gpos_sendPdfInv.Services
 		public const string TENANTS = "Tenants";
 		public const string TRUE = "True";
 		public const string FALSE = "False";
+
+		public const string ADDRESS1 = "Address1";
+		public const string ADDRESS2 = "Address2";
+		public const string ADDRESS3 = "Address3";
+		public const string CITY = "City";
+		public const string COUNTRY = "Country";
+		public const string PHONE = "Phone";
 	}
 }

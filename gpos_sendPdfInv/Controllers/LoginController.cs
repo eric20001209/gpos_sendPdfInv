@@ -8,12 +8,14 @@ using gpos_sendPdfInv.Entities;
 using gpos_sendPdfInv.Services;
 using Microsoft.AspNetCore.Authorization;
 using eCommerce_API.Dto;
+using gpos_sendPdfInv.Dtos;
 using System.Security.Cryptography;
 using System.Text;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.Extensions.Configuration;
 
 namespace gpos_sendPdfInv.Controllers
 {
@@ -24,10 +26,12 @@ namespace gpos_sendPdfInv.Controllers
 	{
 		private readonly admingposContext _context;
 		private readonly iMailService _mailservice;
-		public LoginController(admingposContext context, iMailService mailservice)
+        private readonly IConfiguration _config;
+		public LoginController(admingposContext context, iMailService mailservice, IConfiguration config)
 		{
 			_context = context;
 			_mailservice = mailservice;
+            _config = config;
 		}
 
         [AllowAnonymous]
@@ -78,7 +82,13 @@ namespace gpos_sendPdfInv.Controllers
                     {
                         new Claim(ClaimTypes.Name, a.name),
                         new Claim(ClaimTypes.Email, a.login_email),
-                        new Claim(Constants.USER_ID, a.id.ToString())
+                        new Claim(Constants.USER_ID, a.id.ToString()),
+                        new Claim(Constants.PHONE, a.phone.ToString()),
+                        new Claim(Constants.ADDRESS1, a.address1),
+                        new Claim(Constants.ADDRESS2, a.address2),
+                        new Claim(Constants.ADDRESS3, a.address3),
+                        new Claim(Constants.CITY, a.city),
+                        new Claim(Constants.COUNTRY, a.country)
                     };
                     //var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Startup.Configuration["Token:TokenSecretKey"]));
                     //var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -127,6 +137,40 @@ namespace gpos_sendPdfInv.Controllers
             return BadRequest(
                 new { error = "Account not exists!!" }
                 );
+        }
+
+
+        [AllowAnonymous]
+        [HttpPost("Decode")]
+        public IActionResult decode([FromBody] TokenDto token)
+        {
+			try
+			{
+                string tokenStream = token.TokenString;     // _config["Token:TokenSecretKey"];
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadJwtToken(tokenStream);
+                var tokenS = handler.ReadJwtToken(tokenStream) as JwtSecurityToken;
+
+                var name = tokenS.Claims.First(Claim => Claim.Type == "unique_name").Value;
+                var email = tokenS.Claims.First(Claim => Claim.Type == "email").Value;
+                var userId = tokenS.Claims.First(Claim => Claim.Type == "User Id").Value;
+                var phone = tokenS.Claims.First(Claim => Claim.Type == "Phone").Value;
+
+                var address1 = tokenS.Claims.First(Claim => Claim.Type == "Address1").Value;
+                var address2 = tokenS.Claims.First(Claim => Claim.Type == "Address2").Value;
+                var address3 = tokenS.Claims.First(Claim => Claim.Type == "Address3").Value;
+                var city = tokenS.Claims.First(Claim => Claim.Type == "City").Value;
+                var country = tokenS.Claims.First(Claim => Claim.Type == "Country").Value;
+
+                var status = "successful";
+                return Ok(new { status, name, email, userId, phone, address1,address2,address3,city,country });
+            }
+			catch (Exception ex)
+			{
+                var status = "fail!";
+                return BadRequest(status);
+			}
+
         }
 
         [Authorize(Policy = Constants.CURRENT_USER)]

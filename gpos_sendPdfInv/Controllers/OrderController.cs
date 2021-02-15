@@ -435,8 +435,10 @@ namespace gpos_sendPdfInv.Controllers
 			}
 		}
 
-		[Authorize(Policy = Constants.CURRENT_USER)]
-		[HttpPost("create/{userId}")]
+		//		[Authorize(Policy = Constants.CURRENT_USER)]
+		//		[HttpPost("create/{userId")]
+		[AllowAnonymous]
+		[HttpPost("create")]
 		public async Task<IActionResult> createOrder([FromBody] CartDto cart)
 		{
 			if (!ModelState.IsValid)

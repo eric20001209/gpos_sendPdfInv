@@ -14,6 +14,8 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Mail;
 using Microsoft.AspNetCore.Authorization;
+using ceTe.DynamicPDF.HtmlConverter;
+using gpos_sendPdfInv.Dtos;
 
 namespace gpos_sendPdfInv.Controllers
 {
@@ -47,32 +49,62 @@ namespace gpos_sendPdfInv.Controllers
 		[HttpGet("pdf/{invoice_number}")]
 		public IActionResult createPDF(int invoice_number, string gst)
 		{
-            PdfInvoiceTemplateGenerator pdfGenerator = new PdfInvoiceTemplateGenerator(_invoice);
+			PdfInvoiceTemplateGenerator pdfGenerator = new PdfInvoiceTemplateGenerator(_invoice);
+			try
+			{
+				var globalSettings = new GlobalSettings
+				{
+					ColorMode = ColorMode.Color,
+					Orientation = Orientation.Portrait,
+					PaperSize = PaperKind.A4,
+					Margins = new MarginSettings { Top = 10 },
+					DocumentTitle = "PDF Report",
+					Out = _config["PdfPath"] + invoice_number + ".pdf"
+				};
+				var objectSettings = new ObjectSettings
+				{
+					PagesCount = true,
+					HtmlContent = pdfGenerator.GetHTMLString(invoice_number),
+					WebSettings = { DefaultEncoding = "utf-8", UserStyleSheet = Path.Combine(_config["PdfPath"], "Assets", "styles.css") },
+					HeaderSettings = { FontName = "Arial", FontSize = 9, Right = "Page [page] of [toPage]", Line = true },
+					FooterSettings = { FontName = "Arial", FontSize = 9, Line = true }
+				};
+				var pdf = new HtmlToPdfDocument()
+				{
+					GlobalSettings = globalSettings,
+					Objects = { objectSettings }
+				};
+				_converter.Convert(pdf);
+			}
+			catch (Exception ex)
+			{
+
+				return BadRequest(ex.ToString());
+			}
+
+			return Ok("Successfully created PDF document.");
+		}
+
+		[AllowAnonymous]
+        [HttpPost("pdf")]
+        public IActionResult createPDFByUrl( [FromBody] PdfDto pdf)
+        {
+            ConversionOptions options = new ConversionOptions(PageSize.A4, PageOrientation.Portrait, 5.0f);
+            var directory = _config["PdfPath"] +"//invoice// " + pdf.InvoiceNumber + ".pdf";
             try
             {
-                var globalSettings = new GlobalSettings
-                {
-                    ColorMode = ColorMode.Color,
-                    Orientation = Orientation.Portrait,
-                    PaperSize = PaperKind.A4,
-                    Margins = new MarginSettings { Top = 10 },
-                    DocumentTitle = "PDF Report",
-                    Out = _config["PdfPath"] + invoice_number + ".pdf"
-                };
-                var objectSettings = new ObjectSettings
-                {
-                    PagesCount = true,
-                    HtmlContent = pdfGenerator.GetHTMLString(invoice_number),
-                    WebSettings = { DefaultEncoding = "utf-8", UserStyleSheet = Path.Combine(_config["PdfPath"], "Assets", "styles.css") },
-                    HeaderSettings = { FontName = "Arial", FontSize = 9, Right = "Page [page] of [toPage]", Line = true },
-                    FooterSettings = { FontName = "Arial", FontSize = 9, Line = true }
-                };
-                var pdf = new HtmlToPdfDocument()
-                {
-                    GlobalSettings = globalSettings,
-                    Objects = { objectSettings }
-                };
-                _converter.Convert(pdf);
+                // Set Metadata for the PDF
+                options.Author = "Myself";
+                options.Title = "My Webpage";
+				// Set Header and Footer text
+				options.Header = "";
+				// "<div style=\"text-align:center;display:inline-block;width:100%;font-size:12px;\">" +
+				//"<span class=\"date\"></span></div>";
+				options.Footer = ""; 
+				//"<div style=\"text-align:center;display:inline-block;width:100%;font-size:12px;\">" +
+                 //                    "Page <span class=\"pageNumber\"></span> of <span class=\"totalPages\"></span></div>";
+                // Convert with Options
+                Converter.Convert(new Uri(pdf.Url), directory, options);
             }
             catch (Exception ex)
             {
@@ -82,7 +114,6 @@ namespace gpos_sendPdfInv.Controllers
 
             return Ok("Successfully created PDF document.");
         }
-
         [HttpGet("send/{invoice_number}/{customerEmail}")]
         public async Task<IActionResult> sendPdf(int invoice_number, string customerEmail)
         {
