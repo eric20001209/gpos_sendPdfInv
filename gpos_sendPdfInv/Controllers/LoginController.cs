@@ -80,15 +80,15 @@ namespace gpos_sendPdfInv.Controllers
                 {
                     var claims = new[]
                     {
-                        new Claim(ClaimTypes.Name, a.name),
+                        new Claim(ClaimTypes.Name, String.IsNullOrEmpty(a.name)?"":a.name),
                         new Claim(ClaimTypes.Email, a.login_email),
                         new Claim(Constants.USER_ID, a.id.ToString()),
-                        new Claim(Constants.PHONE, a.phone.ToString()),
-                        new Claim(Constants.ADDRESS1, a.address1),
-                        new Claim(Constants.ADDRESS2, a.address2),
-                        new Claim(Constants.ADDRESS3, a.address3),
-                        new Claim(Constants.CITY, a.city),
-                        new Claim(Constants.COUNTRY, a.country)
+                        new Claim(Constants.PHONE, String.IsNullOrEmpty(a.phone)?"":a.phone),
+                        new Claim(Constants.ADDRESS1, String.IsNullOrEmpty(a.address1)?"":a.address1),
+                        new Claim(Constants.ADDRESS2, String.IsNullOrEmpty(a.address2)?"":a.address2),
+                        new Claim(Constants.ADDRESS3, String.IsNullOrEmpty(a.address3)?"":a.address3),
+                        new Claim(Constants.CITY, String.IsNullOrEmpty(a.city)?"":a.city),
+                        new Claim(Constants.COUNTRY, String.IsNullOrEmpty(a.country)?"":a.country),
                     };
                     //var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Startup.Configuration["Token:TokenSecretKey"]));
                     //var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
