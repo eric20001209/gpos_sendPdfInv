@@ -2193,6 +2193,14 @@ namespace gpos_sendPdfInv.Entities
                     .IsUnicode(false)
                     .HasColumnName("ticket");
 
+                entity.Property(e => e.SCat)
+                    .HasColumnName("s_cat")
+                    .HasMaxLength(150);
+
+                entity.Property(e => e.SsCat)
+                    .HasColumnName("ss_cat")
+                    .HasMaxLength(150);
+
                 entity.Property(e => e.Used).HasColumnName("used");
             });
             modelBuilder.Entity<Settings>(entity => {
