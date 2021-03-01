@@ -17,7 +17,7 @@ namespace gpos_sendPdfInv.Services.Repositories
 		decimal getDealerFreight(decimal total, int dfid);
 		string getOrderStatus(int id);
 		List<FreightInfoDto> getFreightInfo(int invoice_number);
-		List<FreightInfoDto> getFreightInfo(string po_number);
+		List<FreightInfoDto> getFreightInfoByPo(string po_number);
 		string getPaymentMethodById(int id);
 		int getIdByPaymentMethod(string paymentMethod);
 	}
@@ -197,7 +197,7 @@ namespace gpos_sendPdfInv.Services.Repositories
 
 		}
 
-		public List<FreightInfoDto> getFreightInfo(string po_number)
+		public List<FreightInfoDto> getFreightInfoByPo(string po_number)
 		{
 			var freightInfo = //new List<FreightInfoDto>();
 			_context.Orders.Where(i => i.PoNumber == po_number)

@@ -16,6 +16,7 @@ using System.Net.Mail;
 using Microsoft.AspNetCore.Authorization;
 using ceTe.DynamicPDF.HtmlConverter;
 using gpos_sendPdfInv.Dtos;
+using gpos_sendPdfInv.Services.Repositories;
 
 namespace gpos_sendPdfInv.Controllers
 {
@@ -31,12 +32,16 @@ namespace gpos_sendPdfInv.Controllers
 		private readonly iMailService _mail;
 		private IConverter _converter;
         private IInvoice _invoice;
-		public InvoiceController(ILogger<InvoiceController> logger
+        private readonly ISetting _isetting;
+        private readonly IOrder _iorder;
+        public InvoiceController(ILogger<InvoiceController> logger
 									, admingposContext context
 									, IConfiguration config
 									, iMailService mail
 									, IConverter converter
-                                    , IInvoice invoice)
+                                    , IInvoice invoice
+                                    , ISetting isetting
+                                    , IOrder iorder)
 		{
 			_logger = logger;
 			_context = context;
@@ -44,6 +49,8 @@ namespace gpos_sendPdfInv.Controllers
 			_mail = mail;
 			_converter = converter;
             _invoice = invoice;
+            _isetting = isetting;
+            _iorder = iorder;
 		}
 
 		[HttpGet("pdf/{invoice_number}")]
@@ -158,5 +165,30 @@ namespace gpos_sendPdfInv.Controllers
             return BadRequest();
         }
 
-	}
+
+ //     [Authorize(Policy = Constants.ORDER_BELONG_TO_USER)]
+        [HttpGet("freightInfo/{orderId}")]
+        public IActionResult freightInfo(int orderId)
+        {
+            var manage = _config["Management"];
+            var po = "";
+            if (manage == "true")
+            {
+                po = "eCom_Managment_" + orderId;
+
+                var freight = _isetting.getFreightInfoByPo(po);
+                return Ok(freight);
+            }
+            else
+            {
+                int invoice_number = 0;
+                var order = _iorder.getOrderDetail(orderId);
+                if (order != null)
+                    invoice_number = order.inovice_number ?? 0;
+                var freight = _isetting.getFreightInfo(invoice_number);
+                return Ok(freight);
+            }
+        }
+
+    }
 }

@@ -60,13 +60,15 @@ namespace gpos_sendPdfInv.Services.Repositories
 			InvoiceDto invoice = new InvoiceDto();
 			_context.ChangeTracker.QueryTrackingBehavior = Microsoft.EntityFrameworkCore.QueryTrackingBehavior.NoTracking;  //saving garbage collection
 
+			var order = _context.Orders.Where(o => o.Id == orderId).Include(o=>o.shippinginfo);
 
-			var invoiceDetail = _context.Orders.Where(o => o.Id == orderId)
+			var invoiceDetail = order
 							.Join(_context.Invoices.Select(i => new { i.InvoiceNumber, i.Total, i.CommitDate, i.Tax, i.Freight }),
 							(o => o.InvoiceNumber),
 							(i => i.InvoiceNumber),
 							(o, i) => new { o.InvoiceNumber, o.Id, o.shippinginfo, o.OrderTotal, i.Total, i.CommitDate, i.Tax, i.Freight })
-							.Include(o => o.shippinginfo).FirstOrDefault();
+//							.Include(o => o.shippinginfo)
+							.FirstOrDefault();
 			if (invoiceDetail == null)
 				return null;
 
@@ -117,6 +119,7 @@ namespace gpos_sendPdfInv.Services.Repositories
 			invoice.shipto = shippingTo;
 			invoice.po_box = poBox;
 			invoice.gst = gst;
+
 			return invoice;
 		}
 
