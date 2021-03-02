@@ -45,6 +45,7 @@ namespace gpos_sendPdfInv.Entities
         public virtual DbSet<Tran> Trans { get; set; }
         public virtual DbSet<TranDetail> TranDetails { get; set; }
         public virtual DbSet<TranInvoice> TranInvoices { get; set; }
+        public virtual DbSet<TranDetail> TranDetail { get; set; }
         public virtual DbSet<Settings> Settings{ get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
