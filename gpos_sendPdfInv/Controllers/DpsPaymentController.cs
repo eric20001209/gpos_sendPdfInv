@@ -16,6 +16,7 @@ using Microsoft.Data.SqlClient;
 using System.Reflection;
 using System.Net.Http;
 using System.Net.Mail;
+using ceTe.DynamicPDF.HtmlConverter;
 
 namespace gpos_sendPdfInv.Controllers
 {
@@ -317,20 +318,41 @@ namespace gpos_sendPdfInv.Controllers
                                 var currentSite = _config["CurrentSite"];
                                 try
                                 {
-                                    using (var client = new HttpClient())
+                                    ConversionOptions options = new ConversionOptions(PageSize.A4, PageOrientation.Portrait, 5.0f);
+                                    var directory = _config["PdfPath"] + "//invoice//" + order.InvoiceNumber + ".pdf";
+                                    try
                                     {
-                                        client.BaseAddress = new Uri(host1);
-
-                                        var responseTask = client.GetAsync(currentSite + "/api/invoice/pdf/" + orderId);
-                                        responseTask.Wait();
-                                        var getResult = responseTask.Result;
-                                        if (getResult.IsSuccessStatusCode)
-                                        {
-                                            //send order to customer by email
-                                            var myAttachment = new Attachment(_config["PdfPath"] + orderId + ".pdf");
-                                            await _mail.sendEmail(customerEmail, "Invoice", "DoNotReply! <br><br> Dear customer: <br>Thank you for your order from<a href='http://dollaritems.co.nz/ecom'> dollaritems.co.nz</a><br> Your order invoice is in attachment.", myAttachment);
-                                        }
+                                        // Set Metadata for the PDF
+                                        options.Author = "Myself";
+                                        options.Title = "My Webpage";
+                                        // Set Header and Footer text
+                                        options.Header = "";
+                                        options.Footer = "";
+                                        Converter.Convert(new Uri(_config["PdfUrl"] + order.InvoiceNumber), directory, options);
+                                        //send pdf to customer
+                                        var myAttachment = new Attachment(_config["PdfPath"] + "//invoice//" + orderId + ".pdf");
+                                        await _mail.sendEmail(customerEmail, "Invoice", "DoNotReply! <br><br> Dear customer: <br>Thank you for your order.</a><br> Your order invoice is in attachment.", myAttachment);
                                     }
+                                    catch (Exception ex)
+                                    {
+                                        _logger.LogError(ex.Message + "\r\n" + $"Send pdf to customer order unsuccessful, order id: {orderId}.");
+                                        return BadRequest(ex.Message);
+                                    }
+
+                                    //using (var client = new HttpClient())
+                                    //{
+                                    //    client.BaseAddress = new Uri(host1);
+
+                                    //    var responseTask = client.GetAsync(currentSite + "/api/invoice/pdf/" + orderId);
+                                    //    responseTask.Wait();
+                                    //    var getResult = responseTask.Result;
+                                    //    if (getResult.IsSuccessStatusCode)
+                                    //    {
+                                    //        //send order to customer by email
+                                    //        var myAttachment = new Attachment(_config["PdfPath"] + orderId + ".pdf");
+                                    //        await _mail.sendEmail(customerEmail, "Invoice", "DoNotReply! <br><br> Dear customer: <br>Thank you for your order from<a href='http://dollaritems.co.nz/ecom'> dollaritems.co.nz</a><br> Your order invoice is in attachment.", myAttachment);
+                                    //    }
+                                    //}
                                 }
                                 catch (Exception ex)
                                 {
@@ -402,7 +424,7 @@ namespace gpos_sendPdfInv.Controllers
             {
                 _logger.LogError($"Payment for order {orderId} unsuccessful.");
             }
-            return Redirect(returnUrl);
+            return Ok(returnUrl);
         }
     }
 }

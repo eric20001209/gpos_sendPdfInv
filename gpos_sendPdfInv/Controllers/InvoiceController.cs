@@ -97,7 +97,7 @@ namespace gpos_sendPdfInv.Controllers
         public IActionResult createPDFByUrl( [FromBody] PdfDto pdf)
         {
             ConversionOptions options = new ConversionOptions(PageSize.A4, PageOrientation.Portrait, 5.0f);
-            var directory = _config["PdfPath"] +"//invoice// " + pdf.InvoiceNumber + ".pdf";
+            var directory = _config["PdfPath"] +"//invoice//" + pdf.InvoiceNumber + ".pdf";
             try
             {
                 // Set Metadata for the PDF
