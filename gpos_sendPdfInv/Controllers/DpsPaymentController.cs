@@ -17,6 +17,9 @@ using System.Reflection;
 using System.Net.Http;
 using System.Net.Mail;
 using ceTe.DynamicPDF.HtmlConverter;
+using Newtonsoft.Json;
+using gpos_sendPdfInv.Dtos;
+using System.Net.Http.Headers;
 
 namespace gpos_sendPdfInv.Controllers
 {
@@ -316,44 +319,56 @@ namespace gpos_sendPdfInv.Controllers
                                 var host = "http://" + HttpContext.Request.Host;
                                 string host1 = _config["ApiUrl"]; // "http://api171.gpos.nz";
                                 var currentSite = _config["CurrentSite"];
+                                var PdfUrl = _config["PdfUrl"];
                                 try
                                 {
-                                    ConversionOptions options = new ConversionOptions(PageSize.A4, PageOrientation.Portrait, 5.0f);
-                                    var directory = _config["PdfPath"] + "//invoice//" + order.InvoiceNumber + ".pdf";
-                                    try
-                                    {
-                                        // Set Metadata for the PDF
-                                        options.Author = "Myself";
-                                        options.Title = "My Webpage";
-                                        // Set Header and Footer text
-                                        options.Header = "";
-                                        options.Footer = "";
-                                        Converter.Convert(new Uri(_config["PdfUrl"] + order.InvoiceNumber), directory, options);
-                                        //send pdf to customer
-                                        var myAttachment = new Attachment(_config["PdfPath"] + "//invoice//" + orderId + ".pdf");
-                                        await _mail.sendEmail(customerEmail, "Invoice", "DoNotReply! <br><br> Dear customer: <br>Thank you for your order.</a><br> Your order invoice is in attachment.", myAttachment);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        _logger.LogError(ex.Message + "\r\n" + $"Send pdf to customer order unsuccessful, order id: {orderId}.");
-                                        return BadRequest(ex.Message);
-                                    }
+									//ConversionOptions options = new ConversionOptions(PageSize.A4, PageOrientation.Portrait, 5.0f);
+									//var directory = _config["PdfPath"] + "//invoice//" + order.InvoiceNumber + ".pdf";
+									//try
+									//{
+									//    // Set Metadata for the PDF
+									//    options.Author = "Myself";
+									//    options.Title = "My Webpage";
+									//    // Set Header and Footer text
+									//    options.Header = "";
+									//    options.Footer = "";
+									//    Converter.Convert(new Uri(_config["PdfUrl"] + order.InvoiceNumber), directory, options);
+									//    //send pdf to customer
+									//    var myAttachment = new Attachment(_config["PdfPath"] + "//invoice//" + order.InvoiceNumber + ".pdf");
+									//    await _mail.sendEmail(customerEmail, "Invoice", "DoNotReply! <br><br> Dear customer: <br>Thank you for your order.</a><br> Your order invoice is in attachment.", myAttachment);
+									//}
+									//catch (Exception ex)
+									//{
+									//    _logger.LogError(ex.Message + "\r\n" + $"Send pdf to customer order unsuccessful, order id: {orderId}.");
+									//    return BadRequest(ex.Message);
+									//}
 
-                                    //using (var client = new HttpClient())
-                                    //{
-                                    //    client.BaseAddress = new Uri(host1);
+									using (var client = new HttpClient())
+									{
+                                        var data = new PdfDto()
+                                        {
+                                            InvoiceNumber = order.InvoiceNumber ?? 0,
+                                            Url = PdfUrl + order.InvoiceNumber
+                                        };
+                                        var myContent = JsonConvert.SerializeObject(data);
+                                        var buffer = System.Text.Encoding.UTF8.GetBytes(myContent);
+                                        var byteContent = new ByteArrayContent(buffer);
+                                        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-                                    //    var responseTask = client.GetAsync(currentSite + "/api/invoice/pdf/" + orderId);
-                                    //    responseTask.Wait();
-                                    //    var getResult = responseTask.Result;
-                                    //    if (getResult.IsSuccessStatusCode)
-                                    //    {
-                                    //        //send order to customer by email
-                                    //        var myAttachment = new Attachment(_config["PdfPath"] + orderId + ".pdf");
-                                    //        await _mail.sendEmail(customerEmail, "Invoice", "DoNotReply! <br><br> Dear customer: <br>Thank you for your order from<a href='http://dollaritems.co.nz/ecom'> dollaritems.co.nz</a><br> Your order invoice is in attachment.", myAttachment);
-                                    //    }
-                                    //}
-                                }
+                                        client.BaseAddress = new Uri(host1);
+//										var responseTask = client.GetAsync(currentSite + "/api/invoice/pdf/" + orderId);
+                                        var responseTask = client.PostAsync(currentSite + "/api/invoice/pdf", byteContent);
+										responseTask.Wait();
+
+										var getResult = responseTask.Result;
+										if (getResult.IsSuccessStatusCode)
+										{
+											//send order to customer by email
+											var myAttachment = new Attachment(_config["PdfPath"] + orderId + ".pdf");
+											await _mail.sendEmail(customerEmail, "Invoice", "DoNotReply! <br><br> Dear customer: <br>Thank you for your order from<a href='http://dollaritems.co.nz/ecom'> dollaritems.co.nz</a><br> Your order invoice is in attachment.", myAttachment);
+										}
+									}
+								}
                                 catch (Exception ex)
                                 {
                                     _logger.LogError(ex.Message + "\r\n" + $"Send pdf to customer order unsuccessful, order id: {orderId}.");
