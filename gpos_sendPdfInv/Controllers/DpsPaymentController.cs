@@ -364,7 +364,7 @@ namespace gpos_sendPdfInv.Controllers
 										if (getResult.IsSuccessStatusCode)
 										{
 											//send order to customer by email
-											var myAttachment = new Attachment(_config["PdfPath"] + orderId + ".pdf");
+											var myAttachment = new Attachment(_config["PdfPath"] + "//invoice//" + order.InvoiceNumber + ".pdf");
 											await _mail.sendEmail(customerEmail, "Invoice", "DoNotReply! <br><br> Dear customer: <br>Thank you for your order from<a href='http://dollaritems.co.nz/ecom'> dollaritems.co.nz</a><br> Your order invoice is in attachment.", myAttachment);
 										}
 									}
