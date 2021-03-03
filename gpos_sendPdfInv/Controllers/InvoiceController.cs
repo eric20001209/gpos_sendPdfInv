@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Authorization;
 using ceTe.DynamicPDF.HtmlConverter;
 using gpos_sendPdfInv.Dtos;
 using gpos_sendPdfInv.Services.Repositories;
+using Newtonsoft.Json;
+using System.Net.Http.Headers;
 
 namespace gpos_sendPdfInv.Controllers
 {
@@ -188,6 +190,43 @@ namespace gpos_sendPdfInv.Controllers
                 var freight = _isetting.getFreightInfo(invoice_number);
                 return Ok(freight);
             }
+        }
+
+
+        [AllowAnonymous]
+        [HttpGet("testpdf")]
+        public IActionResult testPdf()
+        {
+            string host1 = _config["ApiUrl"]; // "http://api171.gpos.nz";
+            var currentSite = _config["CurrentSite"];
+            var PdfUrl = _config["PdfUrl"];
+
+            using (var client = new HttpClient())
+            {
+                var data = new PdfDto()
+                {
+                    InvoiceNumber = 18691,
+                    Url = "http://gpos.gposnz.com/admin/invoice.aspx?id=18691&pdf=wkhtmltopdf"// PdfUrl + order.InvoiceNumber
+                };
+                var myContent = JsonConvert.SerializeObject(data);
+                var buffer = System.Text.Encoding.UTF8.GetBytes(myContent);
+                var byteContent = new ByteArrayContent(buffer);
+                byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                client.BaseAddress = new Uri(host1);
+                //										var responseTask = client.GetAsync(currentSite + "/api/invoice/pdf/" + orderId);
+                var responseTask = client.PostAsync(currentSite + "/api/invoice/pdf", byteContent);
+                responseTask.Wait();
+
+                var getResult = responseTask.Result;
+                if (getResult.IsSuccessStatusCode)
+                {
+                    //send order to customer by email
+                     var myAttachment = new Attachment(_config["PdfPath"] + "//invoice//18691.pdf");
+//                    await _mail.sendEmail(customerEmail, "Invoice", "DoNotReply! <br><br> Dear customer: <br>Thank you for your order from<a href='http://dollaritems.co.nz/ecom'> dollaritems.co.nz</a><br> Your order invoice is in attachment.", myAttachment);
+                }
+            }
+            return Ok();
         }
 
     }
