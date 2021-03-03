@@ -182,7 +182,7 @@ namespace gpos_sendPdfInv.Controllers
             var isProcessed = _context.TranDetail.Any(td => td.Note == DpsTxnRef || td.PaymentRef == DpsTxnRef);
             if (isProcessed)
                 // return BadRequest("Order " + orderId + " has been processed!");
-                return Redirect(returnUrl);
+                return Ok(returnUrl);
 
             PropertyInfo[] properties = outputQs.GetType().GetProperties();
             foreach (PropertyInfo oPropertyInfo in properties)
