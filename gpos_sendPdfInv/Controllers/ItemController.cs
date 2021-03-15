@@ -64,115 +64,149 @@ namespace gpos_sendPdfInv.Controllers
 
         private ItemListDto myList([FromBody] itemFilterDto filter, [FromQuery] Pagination pagination)
         {
+			try
+			{
+                _context.ChangeTracker.QueryTrackingBehavior = Microsoft.EntityFrameworkCore.QueryTrackingBehavior.NoTracking;
+                ItemListDto final = new ItemListDto();
+                var orderExpression = string.Format("{0} {1}", pagination.SortName, pagination.SortType);
+                var onlineshopId = _isettings.getOnlineShopId();
+                var count = (from c in _context.CodeRelations
+                             where
+                             c.IsWebsiteItem == true && c.Skip == false && c.OnLineRetail == true
+                             && (filter.Cat != null ? c.Cat == filter.Cat : true)
+                             && (filter.SCat != null ? c.SCat == filter.SCat : true)
+                             && (filter.SsCat != null ? c.SsCat == filter.SsCat : true)
+                             && (filter.Hot != null ? c.Hot == filter.Hot : true)
+                             && (filter.Skip != null ? c.Skip == filter.Skip : true)
+                             && (filter.Clearance != null ? c.Clearance == filter.Clearance : true)
+                             && (filter.ComingSoon != null ? Convert.ToBoolean(c.ComingSoon) == filter.ComingSoon : true)
+                             && (filter.NewItem != null ? c.NewItem == filter.NewItem : true)
+                             && (filter.FreeDelivery != null ? c.FreeDelivery == filter.FreeDelivery : true)
+							 && (filter.KeyWord != null ?
+                             //c.Name.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                             //|| (String.IsNullOrEmpty(c.NameCn) ? false : c.NameCn.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0)
+                             //|| c.Code.ToString().Contains(filter.KeyWord)
+                             //|| c.SupplierCode.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                             //|| c.Brand.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                             //|| c.Cat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                             //|| c.SCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                             //|| c.SsCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
 
-            _context.ChangeTracker.QueryTrackingBehavior = Microsoft.EntityFrameworkCore.QueryTrackingBehavior.NoTracking;
-            ItemListDto final = new ItemListDto();
-            var orderExpression = string.Format("{0} {1}", pagination.SortName, pagination.SortType);
-            var onlineshopId = _isettings.getOnlineShopId();
-            var count = (from c in _context.CodeRelations
-                         where
-                         c.IsWebsiteItem == true && c.Skip == false && c.OnLineRetail == true
-                         && (filter.Cat != null ? c.Cat == filter.Cat : true)
-                         && (filter.SCat != null ? c.SCat == filter.SCat : true)
-                         && (filter.SsCat != null ? c.SsCat == filter.SsCat : true)
-                         && (filter.Hot != null ? c.Hot == filter.Hot : true)
-                         && (filter.Skip != null ? c.Skip == filter.Skip : true)
-                         && (filter.Clearance != null ? c.Clearance == filter.Clearance : true)
-                         && (filter.ComingSoon != null ? Convert.ToBoolean(c.ComingSoon) == filter.ComingSoon : true)
-                         && (filter.NewItem != null ? c.NewItem == filter.NewItem : true)
-                         && (filter.FreeDelivery != null ? c.FreeDelivery == filter.FreeDelivery : true)
-                         && (filter.KeyWord != null ?
-                         c.Name.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                         || (String.IsNullOrEmpty(c.NameCn) ? false : c.NameCn.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0)
-                         || c.Code.ToString().Contains(filter.KeyWord)
-                         || c.SupplierCode.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                         || c.Brand.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                         || c.Cat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                         || c.SCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                         || c.SsCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                         : true)
-                         join sq in _context.StockQty on c.Code equals sq.Code into g
-                         from sq in g
-                         where sq.Qty > 0 && sq.BranchId == _isettings.getOnlineShopId()
-                         //join cb in _context.CodeBranch on c.Code equals cb.Code into g
-                         //from cb in g.DefaultIfEmpty()
-                         //where cb.BranchId == _isettings.getOnlineShopId() && cb.Inactive == false
-                         select new
-                         {
-                         }).Count();
+                             c.Name.ToLower().Contains(filter.KeyWord.ToLower())
+                             || (String.IsNullOrEmpty(c.NameCn) ? false : c.NameCn.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.Code.ToString().Contains(filter.KeyWord))
+                             || c.SupplierCode.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.Brand.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.Cat.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.SCat.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.SsCat.ToLower().Contains(filter.KeyWord.ToLower())
+                             : true)
+							 join sq in _context.StockQty on c.Code equals sq.Code into g
+                             from sq in g
+                             where sq.Qty > 0 && sq.BranchId == _isettings.getOnlineShopId()
+                             //join cb in _context.CodeBranch on c.Code equals cb.Code into g
+                             //from cb in g.DefaultIfEmpty()
+                             //where cb.BranchId == _isettings.getOnlineShopId() && cb.Inactive == false
+                             select new
+                             {
+                             }).Count();
 
-            var list = (from c in _context.CodeRelations
-                        where
-                        c.IsWebsiteItem == true && c.Skip == false && c.OnLineRetail == true
-                        && (filter.Cat != null ? c.Cat == filter.Cat : true)
-                        && (filter.SCat != null ? c.SCat == filter.SCat : true)
-                        && (filter.SsCat != null ? c.SsCat == filter.SsCat : true)
-                        && (filter.Hot != null ? c.Hot == filter.Hot : true)
-                                            && (filter.Skip != null ? c.Skip == filter.Skip : true)
-                                             && (filter.Clearance != null ? c.Clearance == filter.Clearance : true)
-                                              && (filter.ComingSoon != null ? Convert.ToBoolean(c.ComingSoon) == filter.ComingSoon : true)
-                        && (filter.NewItem != null ? c.NewItem == filter.NewItem : true)
-                                                         && (filter.FreeDelivery != null ? c.FreeDelivery == filter.FreeDelivery : true)
-                                    && (filter.KeyWord != null ? c.Name.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                        || (String.IsNullOrEmpty(c.NameCn) ? false : c.NameCn.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0)
-                         || c.Code.ToString().Contains(filter.KeyWord)
-                         || c.SupplierCode.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                         || c.Brand.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                         || c.Cat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                         || c.SCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                         || c.SsCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                        : true)
-                        join sq in _context.StockQty on c.Code equals sq.Code into g
-                        from sq in g
-                        where sq.Qty > 0 && sq.BranchId == _isettings.getOnlineShopId()
-                        //join cb in _context.CodeBranch on c.Code equals cb.Code
-                        //into g
-                        //from cb in g.DefaultIfEmpty()
-                        //where cb.BranchId == _isettings.getOnlineShopId() && cb.Inactive == false
-                        //orderby cb.Price1 descending
-                        select new ItemDto
-                        {
-                            Code = c.Code,
-                            SupplierCode = c.SupplierCode,
-							// Site = siteName, // Common.ConvertoToMD5(siteName),
-							Name = c.Name, //Common.RemoveString(c.Name, "--"),//Common.ReplacePriceInDescription(c.Name, @"WAS\s|(\$)[-]?[0-9]+\.?[0-9]+"),
-							NameCn = c.NameCn,
-							Cat = c.Cat,
-							SCat = c.SCat,
-							SsCat = c.SsCat,
-							Hot = c.Hot,
-							FreeDelivery = c.FreeDelivery,
-							IsIdCheck = c.IsIdCheck,
-							Weight = c.Weight,
-							NewItem = c.NewItem,
-							OuterPack = c.outer_pack,
-							InnerPack = c.InnerPack,
-							Moq = (c.Moq == null || c.Moq == 0) ? 1 : c.Moq ?? 1,
-							Barcode = c.Barcode,
-							PicUrl = _config["Url"] + "/pi/" + c.Code + ".jpg",
-							Stock = _iitem.getItemStork(onlineshopId, c.Code),
-							Price1 = c.Price1,
-							Barcodes = _iitem.getBarcodes(c.Code),
-							StoreSpecial = _iitem.SpecialSetting(c.Code, _isettings.getOnlineShopId())
-						});
+                var list = (from c in _context.CodeRelations
+                            where
+                            c.IsWebsiteItem == true && c.Skip == false && c.OnLineRetail == true
+                            && (filter.Cat != null ? c.Cat == filter.Cat : true)
+                            && (filter.SCat != null ? c.SCat == filter.SCat : true)
+                            && (filter.SsCat != null ? c.SsCat == filter.SsCat : true)
+                            && (filter.Hot != null ? c.Hot == filter.Hot : true)
+                                                && (filter.Skip != null ? c.Skip == filter.Skip : true)
+                                                 && (filter.Clearance != null ? c.Clearance == filter.Clearance : true)
+                                                  && (filter.ComingSoon != null ? Convert.ToBoolean(c.ComingSoon) == filter.ComingSoon : true)
+                            && (filter.NewItem != null ? c.NewItem == filter.NewItem : true)
+                                                             && (filter.FreeDelivery != null ? c.FreeDelivery == filter.FreeDelivery : true)
+                            && (filter.KeyWord != null ?
+                             //c.Name.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                             //cotainKeyword(c.Name,filter.KeyWord)
+                             //|| (String.IsNullOrEmpty(c.NameCn) ? false : c.NameCn.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0)
+                             // || c.Code.ToString().Contains(filter.KeyWord)
+                             // || c.SupplierCode.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                             // || c.Brand.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                             // || c.Cat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                             // || c.SCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                             // || c.SsCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
 
-            var itemCount = count;
-            var pageCount = (int)Math.Ceiling(itemCount / (double)pagination.PageSize);
+                             c.Name.ToLower().Contains(filter.KeyWord.ToLower())
+                             || (String.IsNullOrEmpty(c.NameCn) ? false : c.NameCn.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.Code.ToString().Contains(filter.KeyWord))
+                             || c.SupplierCode.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.Brand.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.Cat.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.SCat.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.SsCat.ToLower().Contains(filter.KeyWord.ToLower())
+                            : true)
+                            join sq in _context.StockQty on c.Code equals sq.Code into g
+                            from sq in g
+                            where sq.Qty > 0 && sq.BranchId == _isettings.getOnlineShopId()
+                            //join cb in _context.CodeBranch on c.Code equals cb.Code
+                            //into g
+                            //from cb in g.DefaultIfEmpty()
+                            //where cb.BranchId == _isettings.getOnlineShopId() && cb.Inactive == false
+                            //orderby cb.Price1 descending
+                            select new ItemDto
+                            {
+                                Code = c.Code,
+                                SupplierCode = c.SupplierCode,
+                                // Site = siteName, // Common.ConvertoToMD5(siteName),
+                                Name = c.Name, //Common.RemoveString(c.Name, "--"),//Common.ReplacePriceInDescription(c.Name, @"WAS\s|(\$)[-]?[0-9]+\.?[0-9]+"),
+                                NameCn = c.NameCn,
+                                Cat = c.Cat,
+                                SCat = c.SCat,
+                                SsCat = c.SsCat,
+                                Brand = c.Brand,
+                                Hot = c.Hot,
+                                FreeDelivery = c.FreeDelivery,
+                                IsIdCheck = c.IsIdCheck,
+                                Weight = c.Weight,
+                                NewItem = c.NewItem,
+                                OuterPack = c.outer_pack,
+                                InnerPack = c.InnerPack,
+                                Moq = (c.Moq == null || c.Moq == 0) ? 1 : c.Moq ?? 1,
+                                Barcode = c.Barcode,
+                                PicUrl = _config["Url"] + "/pi/" + c.Code + ".jpg",
+                                Stock = _iitem.getItemStork(onlineshopId, c.Code),
+                                Price1 = c.Price1,
+                                Barcodes = _iitem.getBarcodes(c.Code),
+                                StoreSpecial = _iitem.SpecialSetting(c.Code, _isettings.getOnlineShopId())
+                            });
 
-            IQueryable<ItemDto> items =
-                                list
+                var itemCount = count;
+                var pageCount = (int)Math.Ceiling(itemCount / (double)pagination.PageSize);
 
-                                .OrderBy(orderExpression)
-                                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
-                                .Take(pagination.PageSize);
-                                //.Take(10);
+                IQueryable<ItemDto> items =
+                                    list
 
-            final.Items = items;
-            final.CurrentPage = pagination.PageNumber;
-            final.PageSize = pagination.PageSize;
-            final.PageCount = pageCount;
-            final.ItemCount = itemCount;
-            //         var result = list; // Mapper.Map<IEnumerable<ItemDto>>(myItemList).OrderBy(c => c.Code).ToList() ;
+                                    .OrderBy(orderExpression)
+                                    .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                                    .Take(pagination.PageSize);
+                //.Take(10);
+
+                final.Items = items;
+                final.CurrentPage = pagination.PageNumber;
+                final.PageSize = pagination.PageSize;
+                final.PageCount = pageCount;
+                final.ItemCount = itemCount;
+                //         var result = list; // Mapper.Map<IEnumerable<ItemDto>>(myItemList).OrderBy(c => c.Code).ToList() ;
+                return final;
+            }
+			catch (Exception ex)
+			{
+
+				throw ex;
+			}
+        }
+
+        private bool cotainKeyword (string column, string keyword)
+        {
+            var final = string.Equals(column, keyword, StringComparison.OrdinalIgnoreCase);
             return final;
         }
 
