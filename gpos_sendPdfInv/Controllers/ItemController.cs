@@ -341,14 +341,24 @@ namespace gpos_sendPdfInv.Controllers
                          && (filter.ComingSoon != null ? Convert.ToBoolean(c.ComingSoon) == filter.ComingSoon : true)
                          && (filter.NewItem != null ? c.NewItem == filter.NewItem : true)
                          && (filter.FreeDelivery != null ? c.FreeDelivery == filter.FreeDelivery : true)
-                         && (filter.KeyWord != null ? c.Name.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                          || (String.IsNullOrEmpty(c.NameCn) ? false : c.NameCn.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0)
-                          || c.Code.ToString().Contains(filter.KeyWord)
-                          || c.SupplierCode.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                          || c.Brand.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                          || c.Cat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                          || c.SCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-                          || c.SsCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                         && (filter.KeyWord != null ?
+
+                                      //c.Name.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                                      // || (String.IsNullOrEmpty(c.NameCn) ? false : c.NameCn.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0)
+                                      // || c.Code.ToString().Contains(filter.KeyWord)
+                                      // || c.SupplierCode.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                                      // || c.Brand.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                                      // || c.Cat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                                      // || c.SCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                                      // || c.SsCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                                      c.Name.ToLower().Contains(filter.KeyWord.ToLower())
+                             || (String.IsNullOrEmpty(c.NameCn) ? false : c.NameCn.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.Code.ToString().Contains(filter.KeyWord))
+                             || c.SupplierCode.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.Brand.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.Cat.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.SCat.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.SsCat.ToLower().Contains(filter.KeyWord.ToLower())
                          : true)
                          join sq in _context.StockQty on c.Code equals sq.Code into g
                          from sq in g
@@ -377,14 +387,23 @@ namespace gpos_sendPdfInv.Controllers
              && (filter.ComingSoon != null ? Convert.ToBoolean(c.ComingSoon) == filter.ComingSoon : true)
              && (filter.NewItem != null ? c.NewItem == filter.NewItem : true)
              && (filter.FreeDelivery != null ? c.FreeDelivery == filter.FreeDelivery : true)
-             && (filter.KeyWord != null ? c.Name.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-              || (String.IsNullOrEmpty(c.NameCn) ? false : c.NameCn.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0)
-              || c.Code.ToString().Contains(filter.KeyWord)
-              || c.SupplierCode.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-              || c.Brand.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-              || c.Cat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-              || c.SCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
-              || c.SsCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+             && (filter.KeyWord != null ?
+                          //c.Name.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                          // || (String.IsNullOrEmpty(c.NameCn) ? false : c.NameCn.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0)
+                          // || c.Code.ToString().Contains(filter.KeyWord)
+                          // || c.SupplierCode.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                          // || c.Brand.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                          // || c.Cat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                          // || c.SCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                          // || c.SsCat.IndexOf(filter.KeyWord, StringComparison.OrdinalIgnoreCase) >= 0
+                          c.Name.ToLower().Contains(filter.KeyWord.ToLower())
+                             || (String.IsNullOrEmpty(c.NameCn) ? false : c.NameCn.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.Code.ToString().Contains(filter.KeyWord))
+                             || c.SupplierCode.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.Brand.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.Cat.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.SCat.ToLower().Contains(filter.KeyWord.ToLower())
+                             || c.SsCat.ToLower().Contains(filter.KeyWord.ToLower())
              : true)
              join sq in _context.StockQty on c.Code equals sq.Code into g
              from sq in g
@@ -400,6 +419,7 @@ namespace gpos_sendPdfInv.Controllers
                  Cat = c.Cat,
                  SCat = c.SCat,
                  SsCat = c.SsCat,
+                 Brand = c.Brand,
                  Hot = c.Hot,
                  FreeDelivery = c.FreeDelivery,
                  Weight = c.Weight,
