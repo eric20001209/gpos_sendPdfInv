@@ -103,7 +103,8 @@ namespace gpos_sendPdfInv.Controllers
                              : true)
 							 join sq in _context.StockQty on c.Code equals sq.Code into g
                              from sq in g
-                             where sq.Qty > 0 && sq.BranchId == _isettings.getOnlineShopId()
+ //                           where sq.Qty > 0 && sq.BranchId == _isettings.getOnlineShopId()
+                             where sq.BranchId == _isettings.getOnlineShopId()
                              //join cb in _context.CodeBranch on c.Code equals cb.Code into g
                              //from cb in g.DefaultIfEmpty()
                              //where cb.BranchId == _isettings.getOnlineShopId() && cb.Inactive == false
@@ -145,7 +146,8 @@ namespace gpos_sendPdfInv.Controllers
                             : true)
                             join sq in _context.StockQty on c.Code equals sq.Code into g
                             from sq in g
-                            where sq.Qty > 0 && sq.BranchId == _isettings.getOnlineShopId()
+                                //                           where sq.Qty > 0 && sq.BranchId == _isettings.getOnlineShopId()
+                            where sq.BranchId == _isettings.getOnlineShopId()
                             //join cb in _context.CodeBranch on c.Code equals cb.Code
                             //into g
                             //from cb in g.DefaultIfEmpty()
@@ -362,7 +364,8 @@ namespace gpos_sendPdfInv.Controllers
                          : true)
                          join sq in _context.StockQty on c.Code equals sq.Code into g
                          from sq in g
-                         where sq.Qty > 0 && sq.BranchId == _isettings.getOnlineShopId()
+                             //                           where sq.Qty > 0 && sq.BranchId == _isettings.getOnlineShopId()
+                         where sq.BranchId == _isettings.getOnlineShopId()
                          select new
                          {
 
@@ -407,7 +410,8 @@ namespace gpos_sendPdfInv.Controllers
              : true)
              join sq in _context.StockQty on c.Code equals sq.Code into g
              from sq in g
-             where sq.Qty > 0 && sq.BranchId == _isettings.getOnlineShopId()
+                 //                           where sq.Qty > 0 && sq.BranchId == _isettings.getOnlineShopId()
+             where sq.BranchId == _isettings.getOnlineShopId()
              select new ItemDto
              {
                  Code = c.Code,
